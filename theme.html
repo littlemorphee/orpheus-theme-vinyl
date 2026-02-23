@@ -19,12 +19,12 @@
       align-items: center;
       gap: 20px;
       padding: 16px 22px;
-      border-radius: 14px;
+      border-radius: 50px;
       max-width: 400px;
       opacity: 0;
       transform: scale(0.9);
       transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
       position: relative;
       overflow: hidden;
       background: rgba(30, 18, 8, 0.95);
@@ -41,6 +41,7 @@
       opacity: 0.35;
       transition: background-color 0.8s ease;
       z-index: 0;
+      border-radius: 50px;
     }
 
     .content {
@@ -53,16 +54,16 @@
     }
 
     .record-wrapper {
-      width: 90px;
-      height: 90px;
+      width: 80px;
+      height: 80px;
       flex-shrink: 0;
       position: relative;
       filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
     }
 
     .record {
-      width: 90px;
-      height: 90px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       background:
         radial-gradient(circle at center, #0a0a0a 17%, transparent 17.5%),
@@ -95,7 +96,7 @@
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 34px; height: 34px;
+      width: 30px; height: 30px;
       border-radius: 50%;
       overflow: hidden;
       background: radial-gradient(circle, #c4783a, #8b4513);
@@ -122,12 +123,12 @@
     .info { overflow: hidden; flex: 1; }
 
     .title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: bold;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       color: #f5e6d0;
     }
 
@@ -146,7 +147,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 6px;
+      margin-top: 5px;
     }
 
     .hidden { display: none; }
@@ -182,7 +183,7 @@
     const album = document.getElementById('album');
     let currentTrack = null;
 
-    function getDominantColor(imgEl) {
+    function getDominantColor(imgSrc) {
       return new Promise((resolve) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -196,7 +197,6 @@
             const data = ctx.getImageData(0, 0, 8, 8).data;
             let r = 0, g = 0, b = 0, count = 0;
             for (let i = 0; i < data.length; i += 4) {
-              // Skip very dark and very bright pixels
               const brightness = data[i] + data[i+1] + data[i+2];
               if (brightness > 60 && brightness < 680) {
                 r += data[i]; g += data[i+1]; b += data[i+2];
@@ -208,12 +208,10 @@
             } else {
               resolve('rgb(60, 40, 20)');
             }
-          } catch {
-            resolve('rgb(60, 40, 20)');
-          }
+          } catch { resolve('rgb(60, 40, 20)'); }
         };
         img.onerror = () => resolve('rgb(60, 40, 20)');
-        img.src = imgEl.src;
+        img.src = imgSrc;
       });
     }
 
@@ -227,7 +225,7 @@
       if (data.coverUrl) {
         cover.src = data.coverUrl;
         if (trackChanged) {
-          const color = await getDominantColor(cover);
+          const color = await getDominantColor(data.coverUrl);
           bgColor.style.backgroundColor = color;
         }
       }
