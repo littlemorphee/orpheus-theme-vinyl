@@ -1,0 +1,11 @@
+{
+  "name": "orpheus-theme-vinyl",
+  "version": "1.0.0",
+  "description": "Spinning vinyl record theme for Orpheus",
+  "author": "littlemorphee",
+  "license": "MIT",
+  "orpheus": {
+    "displayName": "Vinyl",
+    "author": "littlemorphee"
+  }
+}

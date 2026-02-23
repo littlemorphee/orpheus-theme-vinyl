@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orpheus - Vinyl</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: transparent;
+      color: white;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 20px;
+      background: rgba(20, 15, 10, 0.9);
+      border-radius: 14px;
+      max-width: 400px;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .container.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .record-wrapper {
+      width: 90px;
+      height: 90px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .record {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, #111 18%, transparent 18.5%),
+        radial-gradient(circle at center, transparent 36%, #111 36.5%, #111 37%, transparent 37.5%),
+        repeating-radial-gradient(circle at center, transparent 0px, transparent 3px, rgba(40, 35, 30, 0.6) 3px, rgba(40, 35, 30, 0.6) 4px),
+        #1a1714;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      animation: spin 3s linear infinite;
+      animation-play-state: paused;
+    }
+
+    .record.playing { animation-play-state: running; }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .record-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #333;
+    }
+
+    .record-label img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .spindle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #555;
+      z-index: 2;
+    }
+
+    .info {
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .title {
+      font-size: 17px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+      color: #f5e6d0;
+    }
+
+    .artist {
+      font-size: 13px;
+      color: rgba(245, 230, 208, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-style: italic;
+    }
+
+    .album {
+      font-size: 11px;
+      color: rgba(245, 230, 208, 0.35);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 6px;
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container" id="container">
+    <div class="record-wrapper">
+      <div class="record" id="record">
+        <div class="record-label">
+          <img id="cover" src="" alt="">
+        </div>
+        <div class="spindle"></div>
+      </div>
+    </div>
+    <div class="info">
+      <div class="title" id="title">-</div>
+      <div class="artist" id="artist">-</div>
+      <div class="album" id="album"></div>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('container');
+    const record = document.getElementById('record');
+    const cover = document.getElementById('cover');
+    const title = document.getElementById('title');
+    const artist = document.getElementById('artist');
+    const album = document.getElementById('album');
+    let currentTrack = null;
+
+    function updateUI(data) {
+      if (!data) { container.classList.remove('visible'); return; }
+      currentTrack = data;
+      title.textContent = data.title || '-';
+      artist.textContent = data.artist || '-';
+      album.textContent = data.album || '';
+      if (data.coverUrl) { cover.src = data.coverUrl; }
+      if (data.playing) { record.classList.add('playing'); }
+      else { record.classList.remove('playing'); }
+      container.classList.add('visible');
+    }
+
+    function connectSSE() {
+      const es = new EventSource('/api/stream');
+      es.addEventListener('track', (e) => { try { updateUI(JSON.parse(e.data)); } catch {} });
+      es.onerror = () => { es.close(); setTimeout(connectSSE, 2000); };
+    }
+
+    fetch('/api/now-playing').then(r => r.json()).then(updateUI).catch(console.error);
+    connectSSE();
+  </script>
+</body>
+</html>
