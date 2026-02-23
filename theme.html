@@ -18,13 +18,14 @@
       display: flex;
       align-items: center;
       gap: 20px;
-      padding: 16px 20px;
-      background: rgba(20, 15, 10, 0.9);
+      padding: 16px 22px;
+      background: linear-gradient(135deg, rgba(60, 40, 20, 0.92), rgba(30, 18, 8, 0.95));
       border-radius: 14px;
       max-width: 400px;
       opacity: 0;
       transform: scale(0.9);
       transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .container.visible {
@@ -37,6 +38,7 @@
       height: 90px;
       flex-shrink: 0;
       position: relative;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
     }
 
     .record {
@@ -44,17 +46,28 @@
       height: 90px;
       border-radius: 50%;
       background:
-        radial-gradient(circle at center, #111 18%, transparent 18.5%),
-        radial-gradient(circle at center, transparent 36%, #111 36.5%, #111 37%, transparent 37.5%),
-        repeating-radial-gradient(circle at center, transparent 0px, transparent 3px, rgba(40, 35, 30, 0.6) 3px, rgba(40, 35, 30, 0.6) 4px),
-        #1a1714;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+        radial-gradient(circle at center, #0a0a0a 17%, transparent 17.5%),
+        radial-gradient(circle at center, transparent 35%, rgba(30, 30, 30, 0.8) 35.5%, rgba(30, 30, 30, 0.8) 36.5%, transparent 37%),
+        repeating-radial-gradient(circle at center, transparent 0px, transparent 2px, rgba(60, 55, 50, 0.5) 2.5px, transparent 3px),
+        radial-gradient(circle at center, #1a1a1a, #0d0d0d);
       position: relative;
-      animation: spin 3s linear infinite;
+      animation: spin 2.5s linear infinite;
       animation-play-state: paused;
+      border: 1px solid rgba(80, 70, 60, 0.4);
     }
 
     .record.playing { animation-play-state: running; }
+
+    .record::after {
+      content: '';
+      position: absolute;
+      top: 5%;
+      left: 5%;
+      width: 90%;
+      height: 90%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.03) 100%);
+    }
 
     @keyframes spin {
       from { transform: rotate(0deg); }
@@ -66,11 +79,13 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       overflow: hidden;
-      background: #333;
+      background: radial-gradient(circle, #c4783a, #8b4513);
+      border: 1.5px solid rgba(180, 140, 80, 0.5);
+      z-index: 1;
     }
 
     .record-label img {
@@ -84,11 +99,12 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
-      background: #555;
+      background: radial-gradient(circle, #888, #444);
       z-index: 2;
+      box-shadow: 0 0 2px rgba(0,0,0,0.5);
     }
 
     .info {
@@ -102,7 +118,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
       color: #f5e6d0;
     }
 
