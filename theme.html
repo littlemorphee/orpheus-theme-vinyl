@@ -19,18 +19,37 @@
       align-items: center;
       gap: 20px;
       padding: 16px 22px;
-      background: linear-gradient(135deg, rgba(60, 40, 20, 0.92), rgba(30, 18, 8, 0.95));
       border-radius: 14px;
       max-width: 400px;
       opacity: 0;
       transform: scale(0.9);
       transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+      background: rgba(30, 18, 8, 0.95);
     }
 
     .container.visible {
       opacity: 1;
       transform: scale(1);
+    }
+
+    .bg-color {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      opacity: 0.35;
+      transition: background-color 0.8s ease;
+      z-index: 0;
+    }
+
+    .content {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+      width: 100%;
     }
 
     .record-wrapper {
@@ -61,10 +80,8 @@
     .record::after {
       content: '';
       position: absolute;
-      top: 5%;
-      left: 5%;
-      width: 90%;
-      height: 90%;
+      top: 5%; left: 5%;
+      width: 90%; height: 90%;
       border-radius: 50%;
       background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.03) 100%);
     }
@@ -76,11 +93,9 @@
 
     .record-label {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 34px;
-      height: 34px;
+      width: 34px; height: 34px;
       border-radius: 50%;
       overflow: hidden;
       background: radial-gradient(circle, #c4783a, #8b4513);
@@ -89,28 +104,22 @@
     }
 
     .record-label img {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       object-fit: cover;
     }
 
     .spindle {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 5px;
-      height: 5px;
+      width: 5px; height: 5px;
       border-radius: 50%;
       background: radial-gradient(circle, #888, #444);
       z-index: 2;
       box-shadow: 0 0 2px rgba(0,0,0,0.5);
     }
 
-    .info {
-      overflow: hidden;
-      flex: 1;
-    }
+    .info { overflow: hidden; flex: 1; }
 
     .title {
       font-size: 17px;
@@ -145,23 +154,27 @@
 </head>
 <body>
   <div class="container" id="container">
-    <div class="record-wrapper">
-      <div class="record" id="record">
-        <div class="record-label">
-          <img id="cover" src="" alt="">
+    <div class="bg-color" id="bgColor"></div>
+    <div class="content">
+      <div class="record-wrapper">
+        <div class="record" id="record">
+          <div class="record-label">
+            <img id="cover" src="" alt="">
+          </div>
+          <div class="spindle"></div>
         </div>
-        <div class="spindle"></div>
       </div>
-    </div>
-    <div class="info">
-      <div class="title" id="title">-</div>
-      <div class="artist" id="artist">-</div>
-      <div class="album" id="album"></div>
+      <div class="info">
+        <div class="title" id="title">-</div>
+        <div class="artist" id="artist">-</div>
+        <div class="album" id="album"></div>
+      </div>
     </div>
   </div>
 
   <script>
     const container = document.getElementById('container');
+    const bgColor = document.getElementById('bgColor');
     const record = document.getElementById('record');
     const cover = document.getElementById('cover');
     const title = document.getElementById('title');
@@ -169,13 +182,55 @@
     const album = document.getElementById('album');
     let currentTrack = null;
 
-    function updateUI(data) {
+    function getDominantColor(imgEl) {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          canvas.width = 8;
+          canvas.height = 8;
+          ctx.drawImage(img, 0, 0, 8, 8);
+          try {
+            const data = ctx.getImageData(0, 0, 8, 8).data;
+            let r = 0, g = 0, b = 0, count = 0;
+            for (let i = 0; i < data.length; i += 4) {
+              // Skip very dark and very bright pixels
+              const brightness = data[i] + data[i+1] + data[i+2];
+              if (brightness > 60 && brightness < 680) {
+                r += data[i]; g += data[i+1]; b += data[i+2];
+                count++;
+              }
+            }
+            if (count > 0) {
+              resolve(`rgb(${Math.round(r/count)}, ${Math.round(g/count)}, ${Math.round(b/count)})`);
+            } else {
+              resolve('rgb(60, 40, 20)');
+            }
+          } catch {
+            resolve('rgb(60, 40, 20)');
+          }
+        };
+        img.onerror = () => resolve('rgb(60, 40, 20)');
+        img.src = imgEl.src;
+      });
+    }
+
+    async function updateUI(data) {
       if (!data) { container.classList.remove('visible'); return; }
+      const trackChanged = !currentTrack || currentTrack.title !== data.title || currentTrack.artist !== data.artist;
       currentTrack = data;
       title.textContent = data.title || '-';
       artist.textContent = data.artist || '-';
       album.textContent = data.album || '';
-      if (data.coverUrl) { cover.src = data.coverUrl; }
+      if (data.coverUrl) {
+        cover.src = data.coverUrl;
+        if (trackChanged) {
+          const color = await getDominantColor(cover);
+          bgColor.style.backgroundColor = color;
+        }
+      }
       if (data.playing) { record.classList.add('playing'); }
       else { record.classList.remove('playing'); }
       container.classList.add('visible');
